@@ -4,7 +4,7 @@ In this exercise you will go through the Compliance features that come with Red 
 
 **NOTE!** This exercise depends on the ACM application deployed in the previous exercise (NOT the application deployed using ArgoCD). If the application is not available in your environment, run the next command to deploy it -
 
-```
+```sh
 <hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-application/rhacm-resources/application.yaml
 ```
 
@@ -49,7 +49,6 @@ In this section you will apply a NetworkPolicy object onto the cluster in order 
 The policy you’ll create in this section will use the _enforce_ remediation action in order to create the NetworkPolicy objects if they do not exist.
 
 We will configure the policy definition in two stages -
-
 
 ### Stage 1 - Deny all traffic to the application namespace
 
@@ -518,7 +517,7 @@ Before you start this section of the exercise, make sure you delete the namespac
 
 4.b. Edit the `oauth.yaml` file. The result should look like -
 
-```
+```yaml
 apiVersion: config.openshift.io/v1
 kind: OAuth
 ...output omitted...
@@ -566,7 +565,7 @@ spec:
 
 10. Log into managed cluster. Make sure that the change in GitHub was applied to the LimitRange resource.
 
-```
+```yaml
 <managed cluster> $ oc get limitrange webserver-limit-range -o yaml -n webserver-acm
 ...
   limits:

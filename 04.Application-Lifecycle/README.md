@@ -135,7 +135,7 @@ Now that you have the **Development** version of the application running, it’s
 
 1. **PlacementRule** - Create a PlacementRule that aggregates the **production** clusters using the **environment=production** label.
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: apps.open-cluster-management.io/v1
@@ -155,7 +155,7 @@ EOF
 
 2. **Subscription** - Create a Subscription that maps the newly created **PlacementRule** to the previously created **Channel**. The subscription uses the **master** branch in the **Channel** in order to run the **production** version of the application.
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: apps.open-cluster-management.io/v1
@@ -213,7 +213,7 @@ Before you begin, make sure to delete all of the resources you created in the pr
 
 As described in the workshop. An ArgoCD / OpenShift GitOps instance has to be installed in order to begin the integration with RHACM. Install the `openshift-gitops` operator by applying the next resource to the hub cluster -
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -234,7 +234,7 @@ HINT: Review the resources available in your cluster that are required for the g
 
 After installing the operator on the hub cluster. Create the ArgoCD CustomResource. The ArgoCD CR spins an instance of ArgoCD using the `openshift-gitops` operator.
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -271,7 +271,7 @@ EOF
 
 Make sure that the ArgoCD instance is running by navigating to ArgoCD's web UI. The URL can be found be running the next command -
 
-```
+```sh
 <hub> $ oc get route -n openshift-gitops
 NAME                      HOST/PORT                                  PATH   SERVICES                  PORT    TERMINATION            WILDCARD
 ...
@@ -294,7 +294,7 @@ In this part you will create the resources to import `local-cluster` into ArgoCD
 
 Create the next ManagedClusterSet resource. The ManagedClusterSet resource will include the `local-cluster` cluster. The ManagedClusterSet resource is associated with the `openshift-gitops` namespace.
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -306,7 +306,7 @@ EOF
 
 Now, import `local-cluster` into the ManagedClusterSet resource. Importation will be done by adding the `cluster.open-cluster-management.io/clusterset: all-clusters` label to the `local-cluster` ManagedCluster resource -
 
-```
+```sh
 <hub> $ oc edit managedcluster local-cluster
 ...
 labels:
@@ -317,7 +317,7 @@ labels:
 
 Create the ManagedClusterSetBinding resource to bind the `local-cluster` ManagedClusterSet resource to the `openshift-gitops` resource. Creating the ManagedClusterSetBinding resource will allow ArgoCD to access `local-cluster` information and import it into its management stack.
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: cluster.open-cluster-management.io/v1beta1
@@ -332,7 +332,7 @@ EOF
 
 Create the Placement resource and bind it to `all-clusters` ManagedClusterSet. Note that you will not be using any special filters in this exercise.
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: cluster.open-cluster-management.io/v1alpha1
@@ -348,7 +348,7 @@ EOF
 
 Create the GitOpsServer resource to indicate the location of ArgoCD and the placement resource -
 
-```
+```yaml
 <hub> $ cat <<EOF | oc apply -f -
 ---
 apiVersion: apps.open-cluster-management.io/v1beta1
@@ -378,7 +378,7 @@ The applications are based on one [helm](https://helm.sh/) chart. Each applicati
 
 To create the ApplicationSet resource run the next commands -
 
-```
+```ah
 <hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/appproject.yaml
 
 <hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/applicationset.yaml
@@ -398,7 +398,7 @@ The deployed application resources can be seen in the ApplicationSet instance in
 
 Make sure that the application is available by navigating to its Route resource.
 
-```
+```sh
 <hub> $ oc get route -n webserver-prod
 
 NAME        HOST/PORT                              PATH                SERVICES    PORT       TERMINATION   WILDCARD
