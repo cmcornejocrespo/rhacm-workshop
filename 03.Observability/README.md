@@ -37,7 +37,7 @@ config:
   secret_key: "minio123"
 ```
 
-To create an instance of `Multi Cluster Obervability`, apply the next object to the  `open-cluster-management-observability` namespace on the hub cluster.
+To create an instance of `Multi Cluster Observability`, apply the next object to the  `open-cluster-management-observability` namespace on the hub cluster.
 
 **NOTE** If you're not using an OpenShift cluster that's deployed on AWS, make sure to modify the StorageClass definition in the below YAML.
 
