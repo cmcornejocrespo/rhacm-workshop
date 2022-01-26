@@ -102,7 +102,6 @@ This part focuses on the default Grafana dashboards that come with RHACM. Each d
 - Find out how much % of `local-cluster`'s memory is utilized.
 - Find what is the size of the etcd database in `local-cluster`.
 - Find the namespace that consumes the most CPU in `local-cluster`.
-- Find what's the node in `local-cluster` that consumes the most % memory.
 - Find what's the `apiserver` (openshift-apiserver namespace) pod CPU utilization and quota.
 
 ### 3.3 - Creating a custom alert
