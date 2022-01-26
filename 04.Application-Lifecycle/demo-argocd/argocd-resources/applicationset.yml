@@ -6,7 +6,7 @@ spec:
   generators:
   - git:
       repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
-      revision: master
+      revision: main
       directories:
       - path: 04.Application-Lifecycle/demo-argocd/mariadb-resources/*
   template:
@@ -16,7 +16,7 @@ spec:
       project: default
       source:
         repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
-        targetRevision: master
+        targetRevision: main
         path: '{{path}}'
       destination:
         name: '{{path.basename}}'
