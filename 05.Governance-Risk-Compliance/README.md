@@ -437,7 +437,7 @@ spec:
                   name: container-security-operator
                   namespace: openshift-operators
                 spec:
-                  channel: quay-v3.4
+                  channel: stable-3.6
                   installPlanApproval: Automatic
                   name: container-security-operator
                   source: redhat-operators
