@@ -558,18 +558,3 @@ spec:
 7. Make sure that the policies are deployed in the **Governance Risk and Compliance** tab in the Advanced Cluster Management for Kubernetes console.
 
 ![policies-overview](images/policies-overview.png)
-
-8. Edit the LimitRange policy in [https://github.com/&lt;your-username>/rhacm-workshop/blob/master/05.Governance-Risk-Compliance/exercise/exercise-policies/limitrange-policy.yaml](https://github.com/cmcornejocrespo/rhacm-workshop/blob/master/05.Governance-Risk-Compliance/exercise/exercise-policies/limitrange-policy.yaml). Change the default container limit from 512Mi to 1024Mi.
-
-9. Make sure that you commit, and push the change to your fork.
-
-10. Log into managed cluster. Make sure that the change in GitHub was applied to the LimitRange resource.
-
-```yaml
-<managed cluster> $ oc get limitrange webserver-limit-range -o yaml -n webserver-acm
-...
-  limits:
-  - default:
-    memory: 1Gi
-...
-```
