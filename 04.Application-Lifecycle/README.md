@@ -153,7 +153,7 @@ spec:
 EOF
 ```
 
-2. **Subscription** - Create a Subscription that maps the newly created **PlacementRule** to the previously created **Channel**. The subscription uses the **master** branch in the **Channel** in order to run the **production** version of the application.
+2. **Subscription** - Create a Subscription that maps the newly created **PlacementRule** to the previously created **Channel**. The subscription uses the **main** branch in the **Channel** in order to run the **production** version of the application.
 
 ```yaml
 <hub> $ cat <<EOF | oc apply -f -
@@ -167,6 +167,7 @@ metadata:
     app: webserver-app
   annotations:
     apps.open-cluster-management.io/github-path: 04.Application-Lifecycle/exercise-application/application-resources
+    apps.open-cluster-management.io/git-branch: main
 spec:
   channel: webserver-acm/webserver-app
   placement:
