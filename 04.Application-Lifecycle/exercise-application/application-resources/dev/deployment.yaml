@@ -21,7 +21,7 @@ spec:
             - containerPort: 8080
               name: webserver
           volumeMounts:
-            - mountPath: /app/application.html
+            - mountPath: /var/www/html/application.html
               name: application-dev
               subPath: application.html
           resources:
