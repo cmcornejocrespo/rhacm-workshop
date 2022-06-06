@@ -1,0 +1,39 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: thanos-ruler-custom-rules
+  namespace: open-cluster-management-observability
+data:
+  custom_rules.yaml: |
+    groups:
+      - name: cluster-health
+        rules:
+        - alert: ClusterCPUHighUsage
+          annotations:
+            summary: Notify when CPU utilization on a cluster is greater than the defined utilization limit
+            description: "The cluster has a high CPU usage: {{ $value }} core for {{ $labels.cluster }}."
+          expr: |
+            max(cluster:cpu_usage_cores:sum) by (cluster) > 2
+          for: 5s
+          labels:
+            cluster: "{{ $labels.cluster }}"
+            severity: critical
+        - alert: ClusterMemoryHighUsage
+          annotations:
+            summary: Notify when memory utilization on a cluster is greater than the defined utilization limit - 20%
+            description: "The cluster has a high memory usage: {{ $value }} for {{ $labels.cluster }}."
+          expr: |
+            1 - sum(:node_memory_MemAvailable_bytes:sum) by (cluster) / sum(kube_node_status_allocatable{resource="memory"}) by (cluster) > 0.2
+          for: 5s
+          labels:
+            cluster: "{{ $labels.cluster }}"
+            severity: critical
+        - alert: HighEtcdSizeReached
+          annotations:
+            summary: Notify if the etcd database size in any cluster reaches more than 100MiB
+            description: "The etcd database of {{ $labels.cluster }} withh size: {{ $value }} is reaching more than 100MiB. "
+          expr: |
+            max (etcd_debugging_mvcc_db_total_size_in_bytes{job="etcd"}) by (cluster) / 1024 / 1024 > 100
+          labels:
+            cluster: "{{ $labels.cluster }}"
+            severity: critical
