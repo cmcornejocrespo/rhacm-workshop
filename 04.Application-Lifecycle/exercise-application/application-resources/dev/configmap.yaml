@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  application.html: |
+    <h1>Dev Application</h1>
+kind: ConfigMap
+metadata:
+  name: application-dev
