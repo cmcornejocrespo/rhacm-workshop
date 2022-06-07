@@ -7,12 +7,14 @@ spec:
   generators:
   - git:
       repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
-      revision: main
+      revision: appset-refactoring
+      files:
+      - path: "04.Application-Lifecycle/exercise-argocd/argocd-resources/environments/**/cluster.json"
       directories:
       - path: 04.Application-Lifecycle/exercise-argocd/application-resources/values/*
   template:
     metadata:
-      name: '{{path.basename}}'
+      name: 'webserver-{{application_name}}'
     spec:
       project: demo-project-argocd
       source:
@@ -21,9 +23,9 @@ spec:
         path: 04.Application-Lifecycle/exercise-argocd/application-resources/
         helm:
           valueFiles:
-          - 'values/{{path.basename}}/values.yaml'
+          - 'values/{{{{application_name}}}}/values.yaml'
       destination:
-        name: 'local-cluster'
+        name: '{{cluster.address}}'
       syncPolicy:
         automated:
           prune: false

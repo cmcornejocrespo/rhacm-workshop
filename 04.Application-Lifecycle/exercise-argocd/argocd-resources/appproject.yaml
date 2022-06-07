@@ -9,7 +9,10 @@ spec:
     kind: '*'
   destinations:
   - namespace: '*'
-    name: local-cluster
+    name: cluster-dev
+    server: '*'
+  - namespace: '*'
+    name: cluster-prod
     server: '*'
   sourceRepos:
   - '*'
