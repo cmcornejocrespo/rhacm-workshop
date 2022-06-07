@@ -1,8 +1,6 @@
 {
-    "environment": "dev",
     "application_name": "webserver-development",
     "cluster": {
-      "name": "cluster-dev",
-      "address": "https://api.cluster-a.sandbox1377.opentlc.com:6443"
+      "name": "cluster-dev"
     }
   }
