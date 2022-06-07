@@ -1,6 +1,6 @@
 {
     "environment": "prod",
-    "application_name": "webserver-prod",
+    "application_name": "webserver-production",
     "cluster": {
       "name": "cluster-prod",
       "address": "https://api.cluster-prod.sandbox155.opentlc.com:6443"
