@@ -289,9 +289,11 @@ Now that you have a running instance of ArgoCD, let's integrate it with RHACM!
 
 ## Preparing RHACM for ArgoCD Integration
 
-In this part you will create the resources to import `local-cluster` into ArgoCD's managed clusters.
+NOTE: We assume having two clusters (environment:dev/environment:production)
 
-Create the next ManagedClusterSet resource. The ManagedClusterSet resource will include the `local-cluster` cluster. The ManagedClusterSet resource is associated with the `openshift-gitops` namespace.
+In this part you will create the resources to import both clusters `cluster-dev` and `cluster-prod` into ArgoCD's managed clusters.
+
+Create the next ManagedClusterSet resource. The ManagedClusterSet resource will include the clusters. The ManagedClusterSet resource is associated with the `openshift-gitops` namespace.
 
 ```yaml
 <hub> $ cat <<EOF | oc apply -f -
@@ -303,10 +305,10 @@ metadata:
 EOF
 ```
 
-Now, import `local-cluster` into the ManagedClusterSet resource. Importation will be done by adding the `cluster.open-cluster-management.io/clusterset: all-clusters` label to the `local-cluster` ManagedCluster resource -
+Now, import both clusters into the ManagedClusterSet resource. Importation will be done by adding the `cluster.open-cluster-management.io/clusterset: all-clusters` label to the `cluster-dev` and `cluster-prod` ManagedCluster resources.
 
 ```sh
-<hub> $ oc edit managedcluster local-cluster
+<hub> $ oc edit managedcluster cluster-dev
 ...
 labels:
 ...
@@ -314,7 +316,16 @@ labels:
 ...
 ```
 
-Create the ManagedClusterSetBinding resource to bind the `local-cluster` ManagedClusterSet resource to the `openshift-gitops` resource. Creating the ManagedClusterSetBinding resource will allow ArgoCD to access `local-cluster` information and import it into its management stack.
+```sh
+<hub> $ oc edit managedcluster cluster-prod
+...
+labels:
+...
+    cluster.open-cluster-management.io/clusterset: all-clusters
+...
+```
+
+Create the ManagedClusterSetBinding resource to bind the ManagedClusterSet resource to the `openshift-gitops` resource. Creating the ManagedClusterSetBinding resource will allow ArgoCD to access `cluster-dev` and `cluster-prod` information and import it into its management stack.
 
 ```yaml
 <hub> $ cat <<EOF | oc apply -f -
@@ -345,7 +356,7 @@ spec:
 EOF
 ```
 
-Create the GitOpsServer resource to indicate the location of ArgoCD and the placement resource -
+Create two GitOpsServer resources to indicate the location of ArgoCD and the placement resource -
 
 ```yaml
 <hub> $ cat <<EOF | oc apply -f -
@@ -353,11 +364,25 @@ Create the GitOpsServer resource to indicate the location of ArgoCD and the plac
 apiVersion: apps.open-cluster-management.io/v1beta1
 kind: GitOpsCluster
 metadata:
-  name: gitops-cluster
+  name: gitops-cluster-dev
   namespace: openshift-gitops
 spec:
   argoServer:
-    cluster: local-cluster
+    cluster: cluster-dev
+    argoNamespace: openshift-gitops
+  placementRef:
+    kind: Placement
+    apiVersion: cluster.open-cluster-management.io/v1alpha1
+    name: all-clusters
+---
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: gitops-cluster-prod
+  namespace: openshift-gitops
+spec:
+  argoServer:
+    cluster: cluster-prod
     argoNamespace: openshift-gitops
   placementRef:
     kind: Placement
@@ -365,7 +390,7 @@ spec:
     name: all-clusters
 EOF
 ```
-Make sure that `local cluster` is imported into ArgoCD. In ArgoCD's web UI, on the left menu bar, navigate to **Manage your repositories, projects, settings** -> **Clusters**. You should see `local-cluster` in the cluster list.
+Make sure that both clsuters are imported into ArgoCD. In ArgoCD's web UI, on the left menu bar, navigate to **Manage your repositories, projects, settings** -> **Clusters**. You should see `cluster-dev` and `cluster-prod` in the cluster list.
 
 ![argocd-cluster](images/argocd-cluster.png)
 
