@@ -398,13 +398,81 @@ Make sure that both clsuters are imported into ArgoCD. In ArgoCD's web UI, on th
 
 Now that you integrated ArgoCD with RHACM, let's deploy an ApplicationSet resource using ArgoCD. The applications you're going to create in this part are based on the same applications you have created in previous exercise - One web server application for a development environment and one for a production environment.
 
-The applications are based on one [helm](https://helm.sh/) chart. Each application in the set is identified by its own unique `values.yaml` file. The applications are using the same baseline kubernetes resources at - [exercise-argocd/application-resources/templates](exercise-argocd/application-resources/templates), but they are using different `values` files at - [exercise-argocd/application-resources/values](exercise-argocd/application-resources/values). Each instance of the application uses a seperate values set. The ApplicationSet resource iterates over the directories in the [exercise-argocd/application-resources/values](exercise-argocd/application-resources/values) directory and creates an instance of an application for each directory name.
+The applications are based on one [helm](https://helm.sh/) chart. Each application in the set is identified by its own unique `values.yaml` file. The applications are using the same baseline kubernetes resources at - [exercise-argocd/application-resources/templates](exercise-argocd/application-resources/templates), but they are using different `values` files at - [exercise-argocd/application-resources/values/{webserver-development,webserver-production}](exercise-argocd/application-resources/values). Each instance of the application uses a seperate values set. The ApplicationSet resource iterates over the directories in the [exercise-argocd/application-resources/values/{webserver-development,webserver-production}](exercise-argocd/application-resources/values) directory and creates an instance of an application for each directory name.
 
 To create the ApplicationSet resource run the next commands -
 
+```yaml
+<hub> $ cat <<EOF | oc apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: webserver-project-argocd
+  namespace: openshift-gitops
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: '*'
+    name: cluster-dev
+    server: '*'
+  - namespace: '*'
+    name: cluster-prod
+    server: '*'
+  sourceRepos:
+  - '*'
+EOF
+```
+or
 ```sh
 <hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/appproject.yaml
 
+and
+
+```yaml
+<hub> $ cat <<EOF | oc apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: webserver-as
+  namespace: openshift-gitops
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
+      revision: appset-refactoring
+      files:
+      - path: "04.Application-Lifecycle/exercise-argocd/argocd-resources/environments/**/cluster.json"
+  - git:
+      repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
+      revision: appset-refactoring
+      directories:
+      - path: 04.Application-Lifecycle/exercise-argocd/application-resources/values/*
+  template:
+    metadata:
+      name: '{{application_name}}'
+    spec:
+      project: webserver-project-argocd
+      source:
+        repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
+        targetRevision: appset-refactoring
+        path: 04.Application-Lifecycle/exercise-argocd/application-resources/
+        helm:
+          valueFiles:
+          - 'values/{{application_name}}/values.yaml'
+      destination:
+        name: '{{cluster.name}}'
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+
+EOF
+```
+or
+
+```
 <hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/applicationset.yaml
 ```
 
@@ -423,8 +491,8 @@ The deployed application resources can be seen in the ApplicationSet instance in
 Make sure that the application is available by navigating to its Route resource.
 
 ```sh
-<hub> $ oc get route -n webserver-prod
+<hub> $ oc get route -n webserver
 
 NAME        HOST/PORT                              PATH                SERVICES    PORT       TERMINATION   WILDCARD
-webserver   webserver-webserver-prod.apps.<FQDN>   /application.html    webserver   8080-tcp   edge          None
+webserver   webserver-webserver.apps.<FQDN>   /application.html    webserver   8080-tcp   edge          None
 ```
