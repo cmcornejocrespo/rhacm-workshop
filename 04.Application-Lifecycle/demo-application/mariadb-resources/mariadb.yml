@@ -18,10 +18,10 @@ spec:
           image: quay.io/centos7/mariadb-103-centos7
           ports:
             - containerPort: 3306
-              name: db-port
+              name: db-port  
           env:
-            - name: MARIADB_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mariadb
-                  key: MYSQL_ROOT_PASSWORD
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-root-password
+                name: mariadb
