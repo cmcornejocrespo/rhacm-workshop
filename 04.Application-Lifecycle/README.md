@@ -441,12 +441,12 @@ spec:
   generators:
   - git:
       repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
-      revision: appset-refactoring
+      revision: main
       files:
       - path: "04.Application-Lifecycle/exercise-argocd/argocd-resources/environments/**/cluster.json"
   - git:
       repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
-      revision: appset-refactoring
+      revision: main
       directories:
       - path: 04.Application-Lifecycle/exercise-argocd/application-resources/values/*
   template:
@@ -456,7 +456,7 @@ spec:
       project: webserver-project-argocd
       source:
         repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
-        targetRevision: appset-refactoring
+        targetRevision: main
         path: 04.Application-Lifecycle/exercise-argocd/application-resources/
         helm:
           valueFiles:
