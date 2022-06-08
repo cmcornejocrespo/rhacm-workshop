@@ -289,9 +289,11 @@ Now that you have a running instance of ArgoCD, let's integrate it with RHACM!
 
 ## Preparing RHACM for ArgoCD Integration
 
-In this part you will create the resources to import `local-cluster` into ArgoCD's managed clusters.
+NOTE: We assume having two clusters (environment:dev/environment:production)
 
-Create the next ManagedClusterSet resource. The ManagedClusterSet resource will include the `local-cluster` cluster. The ManagedClusterSet resource is associated with the `openshift-gitops` namespace.
+In this part you will create the resources to import both clusters `cluster-dev` and `cluster-prod` into ArgoCD's managed clusters.
+
+Create the next ManagedClusterSet resource. The ManagedClusterSet resource will include the clusters. The ManagedClusterSet resource is associated with the `openshift-gitops` namespace.
 
 ```yaml
 <hub> $ cat <<EOF | oc apply -f -
@@ -303,10 +305,10 @@ metadata:
 EOF
 ```
 
-Now, import `local-cluster` into the ManagedClusterSet resource. Importation will be done by adding the `cluster.open-cluster-management.io/clusterset: all-clusters` label to the `local-cluster` ManagedCluster resource -
+Now, import both clusters into the ManagedClusterSet resource. Importation will be done by adding the `cluster.open-cluster-management.io/clusterset: all-clusters` label to the `cluster-dev` and `cluster-prod` ManagedCluster resources.
 
 ```sh
-<hub> $ oc edit managedcluster local-cluster
+<hub> $ oc edit managedcluster cluster-dev
 ...
 labels:
 ...
@@ -314,7 +316,16 @@ labels:
 ...
 ```
 
-Create the ManagedClusterSetBinding resource to bind the `local-cluster` ManagedClusterSet resource to the `openshift-gitops` resource. Creating the ManagedClusterSetBinding resource will allow ArgoCD to access `local-cluster` information and import it into its management stack.
+```sh
+<hub> $ oc edit managedcluster cluster-prod
+...
+labels:
+...
+    cluster.open-cluster-management.io/clusterset: all-clusters
+...
+```
+
+Create the ManagedClusterSetBinding resource to bind the ManagedClusterSet resource to the `openshift-gitops` resource. Creating the ManagedClusterSetBinding resource will allow ArgoCD to access `cluster-dev` and `cluster-prod` information and import it into its management stack.
 
 ```yaml
 <hub> $ cat <<EOF | oc apply -f -
@@ -345,7 +356,7 @@ spec:
 EOF
 ```
 
-Create the GitOpsServer resource to indicate the location of ArgoCD and the placement resource -
+Create two GitOpsServer resources to indicate the location of ArgoCD and the placement resource -
 
 ```yaml
 <hub> $ cat <<EOF | oc apply -f -
@@ -353,11 +364,25 @@ Create the GitOpsServer resource to indicate the location of ArgoCD and the plac
 apiVersion: apps.open-cluster-management.io/v1beta1
 kind: GitOpsCluster
 metadata:
-  name: gitops-cluster
+  name: gitops-cluster-dev
   namespace: openshift-gitops
 spec:
   argoServer:
-    cluster: local-cluster
+    cluster: cluster-dev
+    argoNamespace: openshift-gitops
+  placementRef:
+    kind: Placement
+    apiVersion: cluster.open-cluster-management.io/v1alpha1
+    name: all-clusters
+---
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: gitops-cluster-prod
+  namespace: openshift-gitops
+spec:
+  argoServer:
+    cluster: cluster-prod
     argoNamespace: openshift-gitops
   placementRef:
     kind: Placement
@@ -365,7 +390,7 @@ spec:
     name: all-clusters
 EOF
 ```
-Make sure that `local cluster` is imported into ArgoCD. In ArgoCD's web UI, on the left menu bar, navigate to **Manage your repositories, projects, settings** -> **Clusters**. You should see `local-cluster` in the cluster list.
+Make sure that both clsuters are imported into ArgoCD. In ArgoCD's web UI, on the left menu bar, navigate to **Manage your repositories, projects, settings** -> **Clusters**. You should see `cluster-dev` and `cluster-prod` in the cluster list.
 
 ![argocd-cluster](images/argocd-cluster.png)
 
@@ -373,13 +398,81 @@ Make sure that `local cluster` is imported into ArgoCD. In ArgoCD's web UI, on t
 
 Now that you integrated ArgoCD with RHACM, let's deploy an ApplicationSet resource using ArgoCD. The applications you're going to create in this part are based on the same applications you have created in previous exercise - One web server application for a development environment and one for a production environment.
 
-The applications are based on one [helm](https://helm.sh/) chart. Each application in the set is identified by its own unique `values.yaml` file. The applications are using the same baseline kubernetes resources at - [exercise-argocd/application-resources/templates](exercise-argocd/application-resources/templates), but they are using different `values` files at - [exercise-argocd/application-resources/values](exercise-argocd/application-resources/values). Each instance of the application uses a seperate values set. The ApplicationSet resource iterates over the directories in the [exercise-argocd/application-resources/values](exercise-argocd/application-resources/values) directory and creates an instance of an application for each directory name.
+The applications are based on one [helm](https://helm.sh/) chart. Each application in the set is identified by its own unique `values.yaml` file. The applications are using the same baseline kubernetes resources at - [exercise-argocd/application-resources/templates](exercise-argocd/application-resources/templates), but they are using different `values` files at - [exercise-argocd/application-resources/values/{webserver-development,webserver-production}](exercise-argocd/application-resources/values). Each instance of the application uses a seperate values set. The ApplicationSet resource iterates over the directories in the [exercise-argocd/application-resources/values/{webserver-development,webserver-production}](exercise-argocd/application-resources/values) directory and creates an instance of an application for each directory name.
 
 To create the ApplicationSet resource run the next commands -
 
+```yaml
+<hub> $ cat <<EOF | oc apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: webserver-project-argocd
+  namespace: openshift-gitops
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: '*'
+    name: cluster-dev
+    server: '*'
+  - namespace: '*'
+    name: cluster-prod
+    server: '*'
+  sourceRepos:
+  - '*'
+EOF
+```
+or
 ```sh
 <hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/appproject.yaml
 
+and
+
+```yaml
+<hub> $ cat <<EOF | oc apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: webserver-as
+  namespace: openshift-gitops
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
+      revision: appset-refactoring
+      files:
+      - path: "04.Application-Lifecycle/exercise-argocd/argocd-resources/environments/**/cluster.json"
+  - git:
+      repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
+      revision: appset-refactoring
+      directories:
+      - path: 04.Application-Lifecycle/exercise-argocd/application-resources/values/*
+  template:
+    metadata:
+      name: '{{application_name}}'
+    spec:
+      project: webserver-project-argocd
+      source:
+        repoURL: https://github.com/cmcornejocrespo/rhacm-workshop.git
+        targetRevision: appset-refactoring
+        path: 04.Application-Lifecycle/exercise-argocd/application-resources/
+        helm:
+          valueFiles:
+          - 'values/{{application_name}}/values.yaml'
+      destination:
+        name: '{{cluster.name}}'
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+
+EOF
+```
+or
+
+```
 <hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/applicationset.yaml
 ```
 
@@ -398,8 +491,8 @@ The deployed application resources can be seen in the ApplicationSet instance in
 Make sure that the application is available by navigating to its Route resource.
 
 ```sh
-<hub> $ oc get route -n webserver-prod
+<hub> $ oc get route -n webserver
 
 NAME        HOST/PORT                              PATH                SERVICES    PORT       TERMINATION   WILDCARD
-webserver   webserver-webserver-prod.apps.<FQDN>   /application.html    webserver   8080-tcp   edge          None
+webserver   webserver-webserver.apps.<FQDN>   /application.html    webserver   8080-tcp   edge          None
 ```

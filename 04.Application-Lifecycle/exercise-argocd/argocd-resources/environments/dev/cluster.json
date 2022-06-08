@@ -1,0 +1,6 @@
+{
+    "application_name": "webserver-development",
+    "cluster": {
+      "name": "cluster-dev"
+    }
+  }

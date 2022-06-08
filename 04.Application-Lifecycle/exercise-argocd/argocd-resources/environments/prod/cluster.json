@@ -1,0 +1,6 @@
+{
+    "application_name": "webserver-production",
+    "cluster": {
+      "name": "cluster-prod"
+    }
+  }
