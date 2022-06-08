@@ -5,7 +5,7 @@ In this exercise you will go through the Compliance features that come with Red 
 **NOTE!** This exercise depends on the ACM application deployed in the previous exercise (NOT the application deployed using ArgoCD). If the application is not available in your environment, run the next command to deploy it -
 
 ```sh
-<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-application/rhacm-resources/application.yaml
+<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/main/04.Application-Lifecycle/exercise-application/rhacm-resources/application.yaml
 ```
 
 **NOTE!** Make sure that the `environment=production` label is associated to any of the managed clusters!
@@ -106,7 +106,7 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-networkpolicy-webserver
+  name: prod-binding-policy-networkpolicy-webserver
   namespace: rhacm-policies
 placementRef:
   name: prod-policies-clusters
@@ -218,20 +218,6 @@ spec:
                   podSelector: {}
                   policyTypes:
                   - Ingress
----
-apiVersion: policy.open-cluster-management.io/v1
-kind: PlacementBinding
-metadata:
-  name: binding-policy-networkpolicy-webserver
-  namespace: rhacm-policies
-placementRef:
-  name: prod-policies-clusters
-  kind: PlacementRule
-  apiGroup: apps.open-cluster-management.io
-subjects:
-- name: policy-networkpolicy-webserver
-  kind: Policy
-  apiGroup: policy.open-cluster-management.io
 EOF
 ```
 
@@ -308,7 +294,7 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-limitrange
+  name: prod-binding-policy-limitrange
   namespace: rhacm-policies
 placementRef:
   name: prod-policies-clusters
@@ -379,7 +365,7 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: remove-kubeadmin-binding
+  name: prod-remove-kubeadmin-binding
   namespace: rhacm-policies
 placementRef:
   name: prod-policies-clusters
@@ -437,7 +423,7 @@ spec:
                   name: container-security-operator
                   namespace: openshift-operators
                 spec:
-                  channel: stable-3.6
+                  channel: stable-3.7
                   installPlanApproval: Automatic
                   name: container-security-operator
                   source: redhat-operators
@@ -462,7 +448,7 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: image-placement-binding
+  name: prod-image-placement-binding
   namespace: rhacm-policies
 placementRef:
   name: prod-policies-clusters
@@ -492,7 +478,7 @@ Before you start this section of the exercise, make sure you delete the namespac
 2. Afterwards, create a namespace on which you will deploy the RHACM resources (Use the namespace.yaml file in the forked repository) -
 
 ```sh
-<hub> $ oc apply -f https://raw.githubusercontent.com/<your-github-username>/rhacm-workshop/master/05.Governance-Risk-Compliance/exercise/namespace.yaml
+<hub> $ oc apply -f https://raw.githubusercontent.com/<your-github-username>/rhacm-workshop/main/05.Governance-Risk-Compliance/exercise/namespace.yaml
 ```
 
 3. Now, clone the official policy-collection GitHub repository to your machine. The repository contains a binary named **deploy.sh**. The binary is used to associate policies in a GitHub repository to a running Red Hat Advanced Cluster Management for Kubernetes cluster.
@@ -502,6 +488,8 @@ Before you start this section of the exercise, make sure you delete the namespac
 
 <hub> $ cd policy-collection/deploy/
 ```
+
+Note: Skip to step 5 if you are using an user with cluster-admin role.
 
 4.a. If you are using the kubeadmin user, create an identity provider by running the next commands (It is not possible to create policies via GitOps using the kubeadmin user). The identity provider will create the `workshop-admin` user -
 
@@ -543,18 +531,33 @@ spec:
 <hub> $ oc login -u workshop-admin -p redhat
 ```
 
-5. Run the next command to allow your username deploy policies via Git (If you're not using the `workshop-admin` user to run the command, make sure to edit the command in order to associate your user with the `subscription-admin` ClusterRole. Make sure to run the command even if you are using an administrative user!) -
+5. You must be a subscription administrator in order to deploy policies using a subscription. To become a subscription administrator, you must add an entry for your user to the ClusterRoleBinding named open-cluster-management:subscription-admin.
 
 ```
-<hub> $ oc patch clusterrolebinding.rbac open-cluster-management:subscription-admin -p '{"subjects": [{"apiGroup":"rbac.authorization.k8s.io", "kind":"User", "name":"workshop-admin"}]}'
+<hub> $ oc apply -f 05.Governance-Risk-Compliance/exercise/exercise-templates/policy-subscription-hub.yaml
 ```
 
-6. You can now deploy the policies from your forked repository to Advanced Cluster Management.
+6. Run the next command to allow your username deploy policies via Git (If you're not using the `workshop-admin` user to run the command, make sure to edit the command in order to associate your user with the `subscription-admin` ClusterRole. Make sure to run the command even if you are using an administrative user!) -
 
 ```
-<hub> $ ./deploy.sh --url https://github.com/<your-github-username>/rhacm-workshop.git --branch master --path 05.Governance-Risk-Compliance/exercise/exercise-policies --namespace rhacm-policies
+<hub> $ oc patch clusterrolebinding.rbac open-cluster-management:subscription-admin -p '{"subjects": [{"apiGroup":"rbac.authorization.k8s.io", "kind":"User", "name":"admin"}]}'
 ```
 
-7. Make sure that the policies are deployed in the **Governance Risk and Compliance** tab in the Advanced Cluster Management for Kubernetes console.
+7. You can now deploy the policies from your forked repository to Advanced Cluster Management.
+
+```
+<hub> $ ./deploy.sh --url https://github.com/<your-github-username>/rhacm-workshop.git --branch main --path 05.Governance-Risk-Compliance/exercise/exercise-policies --namespace rhacm-policies --sync High --deploy-app
+```
+
+8. Make sure that the policies are deployed in the **Governance Risk and Compliance** tab in the Advanced Cluster Management for Kubernetes console.
 
 ![policies-overview](images/policies-overview.png)
+
+![policies-overview](images/policies-overview-acm-gitops.png)
+
+9. Run the following to delete everything
+
+```
+# press option 1 twice
+<hub> $ policy-collection/deploy/remove.sh
+```
