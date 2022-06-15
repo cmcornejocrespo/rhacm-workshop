@@ -5,9 +5,9 @@ In this exercise you will deploy a demo application onto the cluster using Red H
 In this exercise you will try to deploy an application that manages two versions -
 
 * Development - [https://github.com/cmcornejocrespo/rhacm-workshop/tree/dev/04.Application-Lifecycle/exercise-application/application-resources](https://github.com/cmcornejocrespo/rhacm-workshop/tree/dev/04.Application-Lifecycle/exercise-application/application-resources)
-* Production - [https://github.com/cmcornejocrespo/rhacm-workshop/tree/master/04.Application-Lifecycle/exercise-application/application-resources](https://github.com/cmcornejocrespo/rhacm-workshop/tree/master/04.Application-Lifecycle/exercise-application/application-resources)
+* Production - [https://github.com/cmcornejocrespo/rhacm-workshop/tree/main/04.Application-Lifecycle/exercise-application/application-resources](https://github.com/cmcornejocrespo/rhacm-workshop/tree/main/04.Application-Lifecycle/exercise-application/application-resources)
 
-Both versions of the application are stored in the same Git repository, while the **production** version is stored in the **master** branch, and the **development** version is stored in the **dev** branch.
+Both versions of the application are stored in the same Git repository, while the **production** version is stored in the **main** branch, and the **development** version is stored in the **dev** branch.
 
 The Application is a simple web application that provides a different output in each version. The **development** application will provide a web page, while the **production** application will provide a different web page.
 
@@ -195,7 +195,7 @@ Click on the application’s route resource, and navigate to **https://&lt;route
 **NOTE:** All of the resources you have configured in this exercise are present in the [git repository](https://github.com/cmcornejocrespo/rhacm-workshop.git). The resources can be created by running the next command -
 
 ```
-<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-application/rhacm-resources/application.yaml
+<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/main/04.Application-Lifecycle/exercise-application/rhacm-resources/application.yaml
 ```
 
 # ArgoCD Integration
@@ -426,7 +426,7 @@ EOF
 ```
 or
 ```sh
-<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/appproject.yaml
+<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/main/04.Application-Lifecycle/exercise-argocd/argocd-resources/appproject.yaml
 
 and
 
@@ -473,7 +473,7 @@ EOF
 or
 
 ```
-<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/master/04.Application-Lifecycle/exercise-argocd/argocd-resources/applicationset.yaml
+<hub> $ oc apply -f https://raw.githubusercontent.com/cmcornejocrespo/rhacm-workshop/main/04.Application-Lifecycle/exercise-argocd/argocd-resources/applicationset.yaml
 ```
 
 Note that two application instances have been created in the ArgoCD UI -
